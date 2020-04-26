@@ -81,9 +81,9 @@ covid19_deaths_df = pd.DataFrame(deaths_as_lists,columns=death_cols)
 def home(request):
     print(os.getcwd())
     print(os.listdir())
-    os.chdir('/home/COVID19CanadaLocal/staticfiles')
-    print(os.getcwd())
-    print(os.listdir())
+    #os.chdir('/home/COVID19CanadaLocal/staticfiles')
+    #print(os.getcwd())
+    #print(os.listdir())
     cities = sorted(list(covid19_df["City"].unique()))
     if request.method == 'POST':
         current_city = request.POST['selected city']
