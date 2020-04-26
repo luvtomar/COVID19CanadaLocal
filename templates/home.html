@@ -34,7 +34,7 @@
       <canvas id="myChart_deaths" width="750" height="250"></canvas>
 
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
-        <script type="text/javascript" src="{% static 'js/Chart.min.js' %}"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
         <script type="text/javascript">
             $.get('{% url "line_chart_json" current_city=current_city type="cases" %}', function(data) {
                 var ctx = $("#myChart").get(0).getContext("2d");
