@@ -27,13 +27,7 @@
 	  </form>
 	  <br><br>
 	  {% if current_city != 'no city selected' %}
-	  <h3>Number of Cases (Including Deaths)</h3>
-      <canvas id="myChart" width="750" height="250"></canvas>
-	  <br><br>
-	  <h3>Number of Deaths</h3>
-      <canvas id="myChart_deaths" width="750" height="250"></canvas>
-
-        <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+	  <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
         <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
         <script type="text/javascript">
             $.get('{% url "line_chart_json" current_city=current_city type="cases" %}', function(data) {
@@ -43,6 +37,10 @@
                 });
             });
         </script>
+	  <h3>Number of Cases (Including Deaths)</h3>
+      <canvas id="myChart" width="750" height="250"></canvas>
+	  <br><br>
+
 		<script type="text/javascript">
 			$.get('{% url "line_chart_json" current_city=current_city type="deaths" %}', function(data) {
 				var ctx = $("#myChart_deaths").get(0).getContext("2d");
@@ -51,6 +49,8 @@
 				});
 			});
         </script>
+	  <h3>Number of Deaths</h3>
+      <canvas id="myChart_deaths" width="750" height="250"></canvas>
 	  {% endif %}
 	  <footer>This website is powered by <a href="https://www.djangoproject.com/">Django</a>.</footer>
     </div>
