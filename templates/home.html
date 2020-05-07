@@ -1,58 +1,53 @@
-{% load static %}<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Local COVID-19 Case Stats and Trendlines</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  </head>
-  <body>
-    <div class="container">
+{% extends 'base.html' %}
+
+{% block content %}
 	<br><br>
 	<h1>Local COVID-19 Case Stats and Trendlines Across Canada</h1>
-	  <br><br><br>
-	  <p>The plots on this page are formed from government, both federal and provincial, COVID-19 case data listed on <a style="font-weight:bold" href="https://virihealth.com/full-details/">Viri Health</a>.</p>
+	<br><br><br>
+	  <p style="font-weight:bold">The plots on this page are formed from provincial government COVID-19 case data, although I was initially sourcing <a style="font-weight:bold" href="https://virihealth.com/full-details/">Viri Health</a>, 
+	  a website that was listing individual COVID-19 case and death numbers per local health region, till they discontinued their website on April 28th. Due to a delay in switching sourcing from Viri Health to provincial government websites,
+	  there is a gap in updated data between April 28th and May 4th.</p>
 	  <form method="post" novalidate>
 	  {% csrf_token %}
-	    <p>Select a city / health region in Canada:</p>
-	    <select name="selected city">
-		  {% for city in cities %}
-		    {% if city == current_city %}
-			  <option value="{{ city }}" selected>{{ city }}</option>
-			{% else %}
-			  <option value="{{ city }}">{{ city }}</option>
+		<p style="font-weight:bold">Select a health region in Canada:</p>
+		<select name="selected city">
+			  <option value=""></option>
+			  {% for city in cities %}
+				{% if city == current_city %}
+					  <option value="{{ city }}" selected>{{ city }}</option>
+					{% else %}
+					  <option value="{{ city }}">{{ city }}</option>
+					{% endif %}
+			  {% endfor %}
+			</select>
+			<button type="submit" class="btn btn-success">Submit</button>
+			{% if error_message == 'T' %}
+			  <p style="font-weight:bold;color:red;">NO SELECTION MADE</p>
 			{% endif %}
-		  {% endfor %}
-		</select>
-		<button type="submit" class="btn btn-success">Post</button>
 	  </form>
 	  <br><br>
 	  {% if current_city != 'no city selected' %}
-	  <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-        <script type="text/javascript">
-            $.get('{% url "line_chart_json" current_city=current_city type="cases" %}', function(data) {
-                var ctx = $("#myChart").get(0).getContext("2d");
-                new Chart(ctx, {
-                    type: 'line', data: data
-                });
-            });
-        </script>
-	  <h3>Number of Cases (Including Deaths)</h3>
-      <canvas id="myChart" width="750" height="250"></canvas>
+	<script type="text/javascript">
+		$.get('{% url "line_chart_json" current_city=current_city type="cases" %}', function(data) {
+			var ctx = $("#myChart").get(0).getContext("2d");
+			new Chart(ctx, {
+				type: 'line', data: data
+			});
+		});
+	</script>
+	  <h3>Number of Reported Cases (Including Deaths) - Last Updated: {{ case_record_time }} EST</h3>
+  <canvas id="myChart" width="750" height="250"></canvas>
 	  <br><br>
 
-		<script type="text/javascript">
-			$.get('{% url "line_chart_json" current_city=current_city type="deaths" %}', function(data) {
-				var ctx = $("#myChart_deaths").get(0).getContext("2d");
-				new Chart(ctx, {
-					type: 'line', data: data
-				});
-			});
-        </script>
-	  <h3>Number of Deaths</h3>
-      <canvas id="myChart_deaths" width="750" height="250"></canvas>
+			<script type="text/javascript">
+					$.get('{% url "line_chart_json" current_city=current_city type="deaths" %}', function(data) {
+							var ctx = $("#myChart_deaths").get(0).getContext("2d");
+							new Chart(ctx, {
+									type: 'line', data: data
+							});
+					});
+	</script>
+	  <h3>Number of Reported Deaths - Last Updated: {{ death_record_time }} EST</h3>
+  <canvas id="myChart_deaths" width="750" height="250"></canvas>
 	  {% endif %}
-	  <footer>This website is powered by <a href="https://www.djangoproject.com/">Django</a>.</footer>
-    </div>
-  </body>
-</html>
+{% endblock %}

@@ -20,83 +20,50 @@ def dateTimeSort(item):
 
 ##Create a MongoDB client, open a connection to Amazon DocumentDB as a replica set and specify the read preference as secondary preferred
 #client = pymongo.MongoClient('mongodb://<sample-user>:<password>@sample-cluster.node.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred')
-#client = pymongo.MongoClient("mongodb://localhost:27017/")
-#mydb = client["COVID19_Canada"]
 client = pymongo.MongoClient('mongodb+srv://'+urllib.parse.quote('luvtomar')+':'+urllib.parse.quote('Maiden1@Tomar')+'@cluster0-osg1l.mongodb.net/test?retryWrites=true&w=majority')
 
+local_records_db = client["COVID19_Canada_local"]
 
-case_records_db = client["COVID19_Canada"]
-#print('number of collections - '+str(len(case_records_db.list_collection_names())))
-latest_collection_date_string = max(sorted([dateTimeSort(date) for date in case_records_db.list_collection_names()])).strftime('%Y-%m-%d')
-
-records_as_lists = []
-IDs = []
-cols = ['ID','City','Province','Date','Provincial Case or Repatriated Canadian Case ID','Sex','Age','Source','Details']
-#cols = ['ID','Provincial Case or Repatriated Canadian Case ID','Date','Sex','Age','City','Province','Source','Details']
-for document in case_records_db[latest_collection_date_string].find():
-    for key in document:
-        if type(document[key]) != list: continue #no need for the document id
-        records_as_lists = []
-        IDs = []
-        time_string = str(key)
-        date_time_string = latest_collection_date_string + ' ' + time_string
-        #doc_datetime = datetime.strptime(date_time_string, '%Y/%m/%d %H:%M:%S')
-        #print(len(document[key]))
-        for record in document[key]:
-            if int(record["ID"]) in IDs: continue
-            IDs.append(int(record["ID"]))
-            records_as_lists.append([int(record["ID"])]+list(record.values())[1:])
-        break
-
-covid19_df = pd.DataFrame(records_as_lists,columns=cols)
-
-
-death_records_db = client["COVID19_Canada_deaths"]
-#print('number of collections - '+str(len(case_records_db.list_collection_names())))
-latest_death_collection_date_string = max(sorted([dateTimeSort(date) for date in death_records_db.list_collection_names()])).strftime('%Y-%m-%d')
-
-deaths_as_lists = []
-death_IDs = []
-death_cols = ['ID','Region','Province','Date','Sex','Age']
-#cols = ['ID','Provincial Case or Repatriated Canadian Case ID','Date','Sex','Age','City','Province','Source','Details']
-for document in death_records_db[latest_death_collection_date_string].find():
-    for key in document:
-        if type(document[key]) != list: continue #no need for the document id
-        deaths_as_lists = []
-        death_IDs = []
-        time_string = str(key)
-        date_time_string = latest_death_collection_date_string + ' ' + time_string
-        #doc_datetime = datetime.strptime(date_time_string, '%Y/%m/%d %H:%M:%S')
-        #print(len(document[key]))
-        for record in document[key]:
-            if int(record["ID"]) in death_IDs: continue
-            death_IDs.append(int(record["ID"]))
-            deaths_as_lists.append([int(record["ID"])]+list(record.values())[1:])
-        break
-
-covid19_deaths_df = pd.DataFrame(deaths_as_lists,columns=death_cols)
-
+local_death_records_db = client["COVID19_Canada_local_deaths"]
 
 
 def home(request):
-    print(os.getcwd())
-    print(os.listdir())
-    #os.chdir('/home/COVID19CanadaLocal/staticfiles')
-    #print(os.getcwd())
-    #print(os.listdir())
-    cities = sorted(list(covid19_df["City"].unique()))
+    cities = sorted(local_records_db.list_collection_names())
     if request.method == 'POST':
         current_city = request.POST['selected city']
-        return render(request, 'home.html', {'cities': cities, 'current_city': current_city})
-    return render(request, 'home.html', {'cities': cities, 'current_city': 'no city selected'})
+        if current_city == '':
+            print('empty selection')
+            return render(request, 'home.html', {'cities': cities, 'current_city': 'no city selected', 'error_message':'T'})
+        latest_collection_date_string = local_records_db[current_city].find()[0]['Last Update']
+        latest_death_collection_date_string = local_death_records_db[current_city].find()[0]['Last Update']
+        return render(request, 'home.html', {'cities': cities, 'current_city': current_city, 'error_message':'F', 'case_record_time': latest_collection_date_string, 'death_record_time': latest_death_collection_date_string})
+    return render(request, 'home.html', {'cities': cities, 'current_city': 'no city selected', 'error_message':'F'})
+
+
+def sources(request):
+    source_list={'Alberta':'https://covid19stats.alberta.ca/',
+                 'British Columbia':'https://governmentofbc.maps.arcgis.com/apps/opsdashboard/index.html#/11bd9b0303c64373b5680df29e5b5914',
+                 'Manitoba':'https://manitoba.maps.arcgis.com/apps/opsdashboard/index.html#/c7814c9d73e840f6be29c0ae0430c4bf',
+                 'New Brunswick':'https://www2.gnb.ca/content/gnb/en/corporate/promo/covid-19/maps_graphs.html',
+                 'Newfoundland and Labrador':'https://www.arcgis.com/apps/opsdashboard/index.html#/d531a6b1720e4a84a540d1f2ab273463',
+                 'Northwest Territories':'https://www.hss.gov.nt.ca/en/services/coronavirus-disease-covid-19',
+                 'Nova Scotia':'https://novascotia.ca/coronavirus/data/',
+                 'Nunavut':'https://gov.nu.ca/health/information/covid-19-novel-coronavirus',
+                 'Ontario':'https://data.ontario.ca/dataset/f4112442-bdc8-45d2-be3c-12efae72fb27/resource/455fd63b-603d-4608-8216-7d8647f43350/download/conposcovidloc.csv',
+                 'Quebec':'https://www.quebec.ca/en/health/health-issues/a-z/2019-coronavirus/situation-coronavirus-in-quebec/',
+                 'Saskatchewan':'https://www.saskatchewan.ca/government/health-care-administration-and-provider-resources/treatment-procedures-and-guidelines/emerging-public-health-issues/2019-novel-coronavirus/cases-and-risk-of-covid-19-in-saskatchewan',
+                 'Yukon':'https://yukon.ca/covid-19'
+                 }
+    return render(request, 'sources.html',{'source_list':list(source_list.items())})
+
 
 class LineChartJSONView(BaseLineChartView):
     def get_labels(self):
         """Return 7 labels for the x-axis."""
         if self.kwargs['type'] == 'cases':
-            date_values = sorted([dateTimeSort(date) for date in list(covid19_df[covid19_df["City"] == self.kwargs['current_city']]["Date"].unique())])
+            date_values = sorted([dateTimeSort(date) for date in list(local_records_db[self.kwargs['current_city']].find()[0]['Numbers'].keys())])
         elif self.kwargs['type'] == 'deaths':
-            date_values = sorted([dateTimeSort(date) for date in list(covid19_deaths_df[covid19_deaths_df["Region"] == self.kwargs['current_city']]["Date"].unique())])
+            date_values = sorted([dateTimeSort(date) for date in list(local_death_records_db[self.kwargs['current_city']].find()[0]['Numbers'].keys())])
         return [date_value.strftime('%Y-%m-%d') for date_value in date_values]
         #return ["January", "February", "March", "April", "May", "June", "July"]
 
@@ -113,17 +80,27 @@ class LineChartJSONView(BaseLineChartView):
         total_count_values = []
         total = 0
         if self.kwargs['type'] == 'cases':
-            daily_count_values = list(covid19_df[covid19_df['City']==self.kwargs['current_city']].groupby('Date')['ID'].count())
-            print('cases - ' + str(daily_count_values))
-            for value in daily_count_values:
-                total = total + value
+            date_values = sorted([dateTimeSort(date) for date in list(local_records_db[self.kwargs['current_city']].find()[0]['Numbers'].keys())])
+            for date in date_values:
+                daily_count_values.append(local_records_db[self.kwargs['current_city']].find()[0]['Numbers'][date.strftime('%Y-%m-%d')])
+                total = total + local_records_db[self.kwargs['current_city']].find()[0]['Numbers'][date.strftime('%Y-%m-%d')]
                 total_count_values.append(total)
+            #daily_count_values = list(covid19_df[covid19_df['City']==self.kwargs['current_city']].groupby('Date')['ID'].count())
+            #print('cases - ' + str(daily_count_values))
+            #for value in daily_count_values:
+            #    total = total + value
+            #    total_count_values.append(total)
         elif self.kwargs['type'] == 'deaths':
-            daily_count_values = list(covid19_deaths_df[covid19_deaths_df['Region']==self.kwargs['current_city']].groupby('Date')['ID'].count())
-            print('deaths - ' + str(daily_count_values))
-            for value in daily_count_values:
-                total = total + value
+            date_values = sorted([dateTimeSort(date) for date in list(local_death_records_db[self.kwargs['current_city']].find()[0]['Numbers'].keys())])
+            for date in date_values:
+                daily_count_values.append(local_death_records_db[self.kwargs['current_city']].find()[0]['Numbers'][date.strftime('%Y-%m-%d')])
+                total = total + local_death_records_db[self.kwargs['current_city']].find()[0]['Numbers'][date.strftime('%Y-%m-%d')]
                 total_count_values.append(total)
+            #daily_count_values = list(covid19_deaths_df[covid19_deaths_df['Region']==self.kwargs['current_city']].groupby('Date')['ID'].count())
+            #print('deaths - ' + str(daily_count_values))
+            #for value in daily_count_values:
+            #    total = total + value
+            #    total_count_values.append(total)
         return [daily_count_values, total_count_values]
     
 #line_chart = TemplateView.as_view(template_name='line_chart.html')
