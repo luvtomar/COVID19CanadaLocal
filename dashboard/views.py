@@ -20,7 +20,7 @@ def dateTimeSort(item):
 
 ##Create a MongoDB client, open a connection to Amazon DocumentDB as a replica set and specify the read preference as secondary preferred
 #client = pymongo.MongoClient('mongodb://<sample-user>:<password>@sample-cluster.node.us-east-1.docdb.amazonaws.com:27017/?ssl=true&ssl_ca_certs=rds-combined-ca-bundle.pem&replicaSet=rs0&readPreference=secondaryPreferred')
-client = pymongo.MongoClient('mongodb+srv://'+urllib.parse.quote('luvtomar')+':'+urllib.parse.quote('Maiden1@Tomar')+'@cluster0-osg1l.mongodb.net/test?retryWrites=true&w=majority')
+client = pymongo.MongoClient('mongodb+srv://'+urllib.parse.quote('luvtomar')+':'+urllib.parse.quote('MY-PASSWORD')+'@cluster0-osg1l.mongodb.net/test?retryWrites=true&w=majority')
 
 local_records_db = client["COVID19_Canada_local"]
 
