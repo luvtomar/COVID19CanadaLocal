@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+        <br><br>
+        <h1>Local COVID-19 Case Stats and Trendlines Across Canada</h1>
+        <br><br><br>
+          <p style="font-weight:bold">The plots on this page are formed from provincial government COVID-19 case data, although I was initially sourcing <a style="font-weight:bold" href="https://virihealth.com/full-details/">Viri Health</a>,
+          a website that was listing individual COVID-19 case and death numbers per local health region, till they discontinued their website on April 28th. Due to a delay in switching sourcing from Viri Health to provincial government websites,
+          there is a gap in updated data between April 28th and May 4th.</p>
+          <form method="post" novalidate>
+          <div style="height:200px;width:50%;float:left;">
+          {% csrf_token %}
+                        <p style="font-weight:bold">Select a health region in Canada:</p>
+                        <select name="selected city" id="city">
+                                <option value=""></option>
+                                {% for city in cities %}
+                                {% if city == current_city %}
+                                <option value="{{ city }}" selected>{{ city }}</option>
+                                {% else %}
+                                <option value="{{ city }}">{{ city }}</option>
+                                {% endif %}
+                                {% endfor %}
+                        </select>
+                        {% if error_message == 'T' %}
+                        <p style="font-weight:bold;color:red;">NO SELECTION MADE</p>
+                        {% endif %}
+          </div>
+          <div style="height:200px;width:50%;float:right">
+            <p style="font-weight:bold">Select a date range (optional):</p>
+                <ul id="dates">
+                <li style="display:block"><span style="font-weight:bold">From: </span><input type="date" name="date_1" min="2020-05-03"></li>
+                <li style="display:block"><span style="font-weight:bold">To: </span><input type="date" name="date_2" min="2020-05-03"></li>
+                </ul>
+                <br><br>
+          </div>
+                <button type="submit" class="btn btn-success">Submit</button>
+          </form>
+          <br><br>
+          {% if current_city != 'no city selected' %}
+          <h3>Province: {{ current_province }}</h3>
+          <br><br>
+        <script type="text/javascript">
+                $.get('{% url "line_chart_json" current_city=current_city type="cases" date_1=date_1 date_2=date_2 %}', function(data) {
+                        var ctx = $("#myChart").get(0).getContext("2d");
+                        new Chart(ctx, {
+                                type: 'line', data: data
+                        });
+                });
+        </script>
+          <h3>Number of Reported Cases (Including Deaths) - Last Updated: {{ case_record_time }} EST</h3>
+  <canvas id="myChart" width="750" height="250"></canvas>
+          <br><br>
+
+                        <script type="text/javascript">
+                                        $.get('{% url "line_chart_json" current_city=current_city type="deaths" date_1=date_1 date_2=date_2 %}', function(data) {
+                                                        var ctx = $("#myChart_deaths").get(0).getContext("2d");
+                                                        new Chart(ctx, {
+                                                                        type: 'line', data: data
+                                                        });
+                                        });
+        </script>
+          <h3>Number of Reported Deaths - Last Updated: {{ death_record_time }} EST</h3>
+  <canvas id="myChart_deaths" width="750" height="250"></canvas>
+          {% endif %}
+{% endblock %}

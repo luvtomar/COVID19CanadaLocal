@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	<br><br>
+	<h1>List of Sources</h1>
+	<br><br><br>
+	<p style="font-weight:bold">The initial source for the data represented on these charts was <a style="font-weight:bold" href="https://virihealth.com/full-details/">Viri Health</a>, a website that was listing all cases across the different local health regiosn in Canada. 
+	Unfortunately, they are no longer active as of April 28th, 2020. As of May 4th, the data is mostly sourced from the provincial government websites, via the following links:</p>
+	<p><strong>UPDATE (May 26th, 2020)</strong>: Due to discrepancies and delays in case reporting on the Ontario government's COVID-19 website and data source, sourcing for all health regions across this province has been switched to each region's individual website / data source.</p>
+	<ul style="list-style-type:none">
+	{% for source,link in source_list %}
+	<li style="font-weight:bold;padding:1%">{{ source }}: <a href="{{ link }}">{{ link }}</a></li>
+	{% if source == 'Nova Scotia' %}
+	<li style="font-weight:bold;padding:1%">Nova Scotia (Deaths): <a href="https://en.wikipedia.org/wiki/COVID-19_pandemic_in_Nova_Scotia">https://en.wikipedia.org/wiki/COVID-19_pandemic_in_Nova_Scotia</a></li>
+	{% endif %}
+	{% endfor %}
+	</ul>
+{% endblock %}
