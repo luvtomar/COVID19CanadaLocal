@@ -30,7 +30,7 @@ PyYAML==5.2
 pyzmq==18.0.1
 requests==2.22.0
 sqlparse==0.3.0
-urllib3==1.25.7
+urllib3==1.25.8
 virtualenv==20.0.15
 w3lib==1.21.0
 widgetsnbextension==3.4.2
