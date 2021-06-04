@@ -6,7 +6,7 @@ attrs==19.1.0
 configparser==4.0.2
 distlib==0.3.0
 dj-database-url==0.5.0
-Django==3.0.7
+Django==3.1.9
 django-widget-tweaks
 django-chartjs
 dnspython==1.16.0
